@@ -26,10 +26,19 @@ module OstrichPoll
     opt :url, "url",
         type: :string,
         default: 'http://127.0.0.1:9900/stats.json'
+
+    opt :debug, "debug",
+        :default => false
   end
 
   if @opts[:configfile] and not File.readable_real?(@opts[:configfile])
     Trollop::die "configuration file #{@opts[:configfile]} cannot be read"
+  end
+
+  if @opts[:debug]
+    Log.level = Logger::DEBUG
+  else
+    Log.level = Logger::WARN
   end
 
   # TODO rewrite the basic check in terms of a hard-coded validator, much cleaner
@@ -38,9 +47,13 @@ module OstrichPoll
     yaml = YAML.load_file @opts[:configfile]
     hosts = ConfigParser.parse(yaml)
 
+    retval = false
     hosts.each do |h|
-      h.validate
+      retval = h.validate unless retval
     end
+
+    # use the exitcode, unless none is given
+    exit retval if retval
 
   else
     # if we don't have a config file, simply check that the host and port respond to http
@@ -53,9 +66,12 @@ module OstrichPoll
     end
   end
 
-  exit EXIT_OK
+rescue SystemExit => e
+  exit e.status
 
 rescue Exception => e
   Log.error e
   exit EXIT_ERROR # exit with error
 end
+
+exit OstrichPoll::EXIT_OK

@@ -3,6 +3,7 @@
 #
 
 require 'json'
+require 'yaml'
 require 'net/http'
 
 module OstrichPoll
@@ -17,6 +18,7 @@ module OstrichPoll
     end
 
     attr_accessor :stored_values
+    attr_accessor :stored_timestamp
 
     def validate
       uri = URI.parse url
@@ -25,41 +27,52 @@ module OstrichPoll
       # parse response
       json = JSON.parse(response) rescue (
         Log.error "Invalid JSON response: #{response}"
-        exit EXIT_ERROR
+        return EXIT_ERROR
       )
 
-      stored_values = {}
+      @stored_values = {}
       if rate_file
         # read in rate-file
-        stored_text = File.read(rate_file) rescue (
-          Log.warn "Could not read rate file: #{rate_file}"
-          "{}"
-        )
-
-        stored_values = JSON.parse(stored_text) rescue (
-          Log.warn "Could not parse rate file content: #{stored_text}"
+        @stored_values = YAML.load_file(rate_file) rescue (
+          Log.warn "Could not parse rate file: #{rate_file}"
           {}
         )
+
+        @stored_timestamp = stored_values['ostrichpoll.timestamp']
+        unless @stored_timestamp
+          Log.warn "No 'ostrichpoll.timestamp' found in rate file: #{rate_file}"
+        end
+
+        # write out new rate file
+        json['ostrichpoll.timestamp'] = Time.now.to_i
+        File.open(rate_file, 'w') do |f|
+          f.puts json.to_yaml
+        end
       end
 
       # execute each validations:
-      validations.each do |v|
-        v.check(find_value(json, v.metric))
+      retval = false
+      if validations
+        validations.each do |v|
+          value = v.check(find_value(json, v.metric))
+          retval = value unless retval
+        end
       end
+
+      retval
     end
 
     def previous_reading(key)
-      return find_value(stored_values, key)
+      return stored_timestamp, find_value(stored_values, key)
     end
 
     def find_value(map, key)
       tree = map
       key.split('/').each do |selector|
-        return nil unless tree
+        return nil unless tree.kind_of? Hash
         tree = tree[selector]
       end
 
-      # final "tree" is the actual node
       tree
     end
   end
@@ -76,9 +89,9 @@ module OstrichPoll
     attr_accessor :exit_code
 
     def init
-      rate = false
-      exit_code = 1
-      missing = :ignore
+      @rate = false
+      @exit_code = 1
+      @missing = :ignore
     end
 
     def verify!
@@ -91,10 +104,18 @@ module OstrichPoll
     end
 
     def check (value)
+      Log.debug "#{host_instance.url} | Given: #{metric}=#{value}"
+
       # error on missing value unless we ignore missing
-      unless value || missing == :ignore
-        Log.warn "#{metric}: value missing, treating as error"
-        return exit_code
+      unless value
+        unless missing == :ignore
+          Log.warn "#{metric}: value missing, treating as error; exit code #{exit_code}"
+          return exit_code
+        else
+          Log.debug "#{host_instance.url} |   missing value, but set to ignore"
+          # not an error, but you can't check anything else
+          return false
+        end
       end
 
       # compute rate
@@ -102,21 +123,26 @@ module OstrichPoll
         timestamp, previous = host_instance.previous_reading(metric)
 
         if previous
+          Log.debug "#{host_instance.url} |   last seen: #{previous} @ #{timestamp}"
+
           # change since last measure
           value -= previous
 
           # divide by seconds elapsed
           value /= Time.now.to_i - timestamp
 
+          Log.debug "#{host_instance.url} |   computed rate: #{value}"
+
         else
           # let it pass
           Log.info "#{metric}: no previous reading for rate"
-          return true
+          return false
         end
       end
 
       # ensure value is within normal range
       if normal_range
+        Log.debug "#{host_instance.url} |   normal range: #{normal_range.inspect}"
         case normal_range.size
           when 1 # max
             hi = normal_range.first
@@ -131,17 +157,19 @@ module OstrichPoll
         end
 
         if lo && value < lo
-          Log.warn "#{metric}: read value #{value} is below normal range #{lo}"
+          Log.warn "#{metric}: read value #{value} is below normal range minimum #{lo}; exit code #{exit_code}"
           return exit_code
         end
 
         if hi && value > hi
-          Log.warn "#{metric}: read value #{value} is above normal range #{hi}"
+          Log.warn "#{metric}: read value #{value} is above normal range maximum #{hi}; exit code #{exit_code}"
           return exit_code
         end
+
+        Log.debug "#{host_instance.url} |   within normal range"
       end
 
-      true
+      false
     end
   end
 end

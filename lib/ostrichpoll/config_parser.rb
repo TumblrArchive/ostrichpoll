@@ -57,7 +57,7 @@ module OstrichPoll
             validator.normal_range = value
 
           when 'missing'
-            validator.missing = value
+            validator.missing = value.to_sym
 
           when 'exit_code'
             validator.exit_code = value
