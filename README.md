@@ -6,7 +6,8 @@ over HTTP.
 
 Features:
 
-* not a daemon: Ostrichpoll is intended to be run by `monit` or similar tool on a regular basis.
+* not a daemon: Ostrichpoll is intended to used by `monit` or a similar tool
+  as part of a health check for a proper service
 * validate multiple endpoints in a single execution
 * specify normal ranges for metrics and gauges through YAML configuration
 * support for "rate" measurements, specifying acceptable change per second for
