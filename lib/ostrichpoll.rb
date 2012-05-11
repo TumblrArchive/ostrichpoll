@@ -27,6 +27,9 @@ require 'ostrichpoll/config_parser'
 
 module OstrichPoll
   Log = Logger.new(STDERR)
+  Log.formatter = lambda do |severity, datetime, progname, msg|
+    "#{severity} #{msg}\n"
+  end
 
   @opts = Trollop::options do
     version = "ostrichpoll #{VERSION}"
