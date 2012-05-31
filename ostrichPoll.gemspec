@@ -15,6 +15,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = OstrichPoll::VERSION
 
-  gem.add_development_dependency 'json'
-  gem.add_development_dependency 'trollop'
+  gem.add_dependency 'json'
+  gem.add_dependency 'trollop'
 end
