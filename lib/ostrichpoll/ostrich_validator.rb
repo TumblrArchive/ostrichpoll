@@ -106,6 +106,10 @@ module OstrichPoll
     def check (value)
       Log.debug "#{host_instance.url} | Given: #{metric}=#{value}"
 
+      if !value.is_a? Integer
+        value = Integer(value)
+      end
+
       # error on missing value unless we ignore missing
       unless value
         unless missing == :ignore
