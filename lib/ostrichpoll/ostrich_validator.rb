@@ -22,7 +22,10 @@ module OstrichPoll
 
     def validate
       uri = URI.parse url
-      response = Net::HTTP.get uri
+      response = Net::HTTP.get uri rescue (
+        Log.error "Unable to connect to host #{uri}"
+        return EXIT_ERROR
+      )
 
       # parse response
       json = JSON.parse(response) rescue (
@@ -105,6 +108,10 @@ module OstrichPoll
 
     def check (value)
       Log.debug "#{host_instance.url} | Given: #{metric}=#{value}"
+
+      if !value.is_a? Integer
+        value = Integer(value) rescue nil
+      end
 
       # error on missing value unless we ignore missing
       unless value
