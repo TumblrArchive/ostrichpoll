@@ -52,6 +52,9 @@ module OstrichPoll
           when 'rate'
             validator.rate = value
 
+          when 'regex'
+            validator.regex = value
+
           when 'normal_range'
             # FIXME validate normal range (min <= max, etc.)
             validator.normal_range = value

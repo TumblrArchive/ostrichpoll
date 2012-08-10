@@ -53,10 +53,23 @@ module OstrichPoll
         end
       end
 
-      # execute each validations:
+      # execute each validation:
       retval = false
       if validations
+        matched_validations = []
         validations.each do |v|
+          if(v.regex)
+            find_validation_names_by_regex(json, v.metric).each do |n|
+              matched_validator = v.clone
+              matched_validator.metric = n
+              matched_validations << matched_validator
+            end
+          else
+            matched_validations << v
+          end
+        end
+
+        matched_validations.each do |v|
           value = v.check(find_value(json, v.metric))
           retval = value unless retval
         end
@@ -67,6 +80,27 @@ module OstrichPoll
 
     def previous_reading(key)
       return stored_timestamp, find_value(stored_values, key)
+    end
+
+    def find_validation_names_by_regex(tree, key)
+      split_key = key.split('/', 2)
+      selector = split_key.first
+
+      stat_name_matches = []
+
+      tree.each do |k, v|
+        if /#{selector}/.match(k) do 
+            if v.kind_of? Hash
+              find_validation_names_by_regex(v, split_key.last).each do |s|
+                stat_name_matches << "#{k}/#{s}"
+              end
+            elsif
+              stat_name_matches << k
+            end
+          end
+        end
+      end
+      stat_name_matches
     end
 
     def find_value(map, key)
@@ -87,12 +121,14 @@ module OstrichPoll
 
     attr_accessor :metric
     attr_accessor :rate
+    attr_accessor :regex
     attr_accessor :normal_range
     attr_accessor :missing
     attr_accessor :exit_code
 
     def init
       @rate = false
+      @regex = false
       @exit_code = 1
       @missing = :ignore
     end
