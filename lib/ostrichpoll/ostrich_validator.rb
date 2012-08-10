@@ -94,7 +94,7 @@ module OstrichPoll
               find_validation_names_by_regex(v, split_key.last).each do |s|
                 stat_name_matches << "#{k}/#{s}"
               end
-            elsif
+            elsif split_key.size == 1 #This is the last match
               stat_name_matches << k
             end
           end
