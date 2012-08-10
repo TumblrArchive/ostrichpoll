@@ -66,18 +66,16 @@ Configuration is specified in the format:
     * `exit_code` what value Ostrichpoll should exit with if this error is seen.
     
 ### Notes
-Ostrichpoll is setup to execute all validations on each execution, even if one of the early validations fails, the output from all validations is logged to stderr. However, the exit code is the exit code from the first erroring validation.
+Ostrichpoll is setup to execute all validations on each execution. Even if one of the early validations fails, the output from all validations is logged to stderr. However, the exit code is the exit code from the first erroring validation.
 
 
 ## License
 
-Copyright 2012, Tumblr Inc.
+Copyright 2012, Tumblr, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
+You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
