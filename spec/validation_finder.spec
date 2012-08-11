@@ -16,16 +16,22 @@ describe Host do
   }
   h = Host.new
 
-  it 'should fail gracefully' do
+  it 'will fail gracefully' do
     h.find_value(sample_map, 'invalidkey').should be_nil
   end
 
-  it 'support simple key matching' do
+  it 'supports simple key matching' do
     h.find_value(sample_map, 'l1').should be_a_kind_of(Hash)
 
     h.find_value(sample_map, 'l1/l2').should be_a_kind_of(Hash)
     h.find_value(sample_map, 'l1/l4').should eq(15)
     h.find_value(sample_map, 'l1/l5').should eq(16)
     h.find_value(sample_map, 'l1/l6').should eq(17)
+  end
+
+  it 'supports regexp key matching' do
+    h.find_validation_names_by_regex(sample_map, 'l1/l?').should eq(
+      %w{l1/l2/has/slash l1/l2/l3 l1/l4 l1/l5 l1/l6}
+    )
   end
 end

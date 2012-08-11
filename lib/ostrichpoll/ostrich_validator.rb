@@ -87,9 +87,10 @@ module OstrichPoll
       selector = split_key.first
 
       stat_name_matches = []
+      regexp = /#{selector}/
 
       tree.each do |k, v|
-        if /#{selector}/.match(k) do 
+        if regexp.match(k) do
             if v.kind_of? Hash
               find_validation_names_by_regex(v, split_key.last).each do |s|
                 stat_name_matches << "#{k}/#{s}"
