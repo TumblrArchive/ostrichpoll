@@ -34,4 +34,10 @@ describe Host do
       %w{l1/l2/has/slash l1/l2/l3 l1/l4 l1/l5 l1/l6}
     )
   end
+
+  it 'supports escaped slashes' do
+    h.split_on_slash('a/b/c/d').should eq(%w[a b c d])
+    h.split_on_slash('a\\/b/c/d').should eq(%w[a/b c d])
+    h.split_on_slash('a/b/c/d', 2).should eq(%w[a b/c/d])
+  end
 end

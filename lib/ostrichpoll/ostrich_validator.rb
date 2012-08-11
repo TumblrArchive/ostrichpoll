@@ -82,8 +82,15 @@ module OstrichPoll
       return stored_timestamp, find_value(stored_values, key)
     end
 
+    # split on a slash, unless it's escaped
+    def split_on_slash(key, *limit)
+      key.split(/(?<!\\)\//, *limit).map do |str|
+          str.sub('\\', '')
+      end
+    end
+
     def find_validation_names_by_regex(tree, key)
-      split_key = key.split('/', 2)
+      split_key = split_on_slash(key, 2)
       selector = split_key.first
 
       stat_name_matches = []
@@ -106,7 +113,7 @@ module OstrichPoll
 
     def find_value(map, key)
       tree = map
-      key.split('/').each do |selector|
+      split_on_slash(key).each do |selector|
         return nil unless tree.kind_of? Hash
         tree = tree[selector]
       end
