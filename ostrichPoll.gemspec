@@ -17,4 +17,6 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency 'json'
   gem.add_dependency 'trollop'
+
+  gem.add_development_dependency 'rspec'
 end
