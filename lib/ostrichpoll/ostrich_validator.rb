@@ -109,8 +109,8 @@ module OstrichPoll
     def check (value)
       Log.debug "#{host_instance.url} | Given: #{metric}=#{value}"
 
-      if !value.is_a? Integer
-        value = Integer(value) rescue nil
+      if !value.is_a? Float
+        value = Float(value) rescue nil
       end
 
       # error on missing value unless we ignore missing
