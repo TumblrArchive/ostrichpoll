@@ -61,7 +61,6 @@ module OstrichPoll
       if validations
         validations.each do |v|
           value = v.check(find_value(json, v.metric))
-          puts value.message unless value.nil?
           retval = value if retval.nil?
         end
       end
@@ -126,12 +125,13 @@ module OstrichPoll
       # error on missing value unless we ignore missing
       unless value
         unless missing == :ignore
-          Log.warn "#{metric}: value missing, treating as error; exit code #{exit_code}"
-          return ExitStatus.new("#{metric} is missing", exit_code)
+          error_msg = "#{metric}: value missing"
+          Log.warn "#{error_msg}, treating as error; exit code #{exit_code}"
+          return ExitStatus.new(error_msg, exit_code)
         else
           Log.debug "#{host_instance.url} |   missing value, but set to ignore"
           # not an error, but you can't check anything else
-          return EXIT_FAIL
+          return nil
         end
       end
 
