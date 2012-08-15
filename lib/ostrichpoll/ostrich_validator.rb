@@ -175,12 +175,12 @@ module OstrichPoll
 
         if lo && value < lo
           Log.warn "#{metric}: read value #{value} is below normal range minimum #{lo}; exit code #{exit_code}; exit message '#{exit_message}'"
-          return ExitStatus(exit_message, exit_code)
+          return ExitStatus.new(exit_message, exit_code)
         end
 
         if hi && value > hi
           Log.warn "#{metric}: read value #{value} is above normal range maximum #{hi}; exit code #{exit_code}; exit message '#{exit_message}'"
-          return ExitStatus(exit_message, exit_code)
+          return ExitStatus.new(exit_message, exit_code)
         end
 
         Log.debug "#{host_instance.url} |   within normal range"
