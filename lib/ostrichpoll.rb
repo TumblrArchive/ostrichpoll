@@ -6,7 +6,7 @@ require 'logger'
 
 require 'ostrichpoll/string'
 require 'ostrichpoll/version'
-require 'ostrichpoll/exit_codes'
+require 'ostrichpoll/exit_status'
 require 'ostrichpoll/config_parser'
 
 module OstrichPoll
@@ -47,7 +47,7 @@ module OstrichPoll
     yaml = YAML.load_file @opts[:configfile]
     hosts = ConfigParser.parse(yaml)
 
-    retval = false
+    retval = ExitStatus.new("", false)
     hosts.each do |h|
       retval = h.validate unless retval
     end

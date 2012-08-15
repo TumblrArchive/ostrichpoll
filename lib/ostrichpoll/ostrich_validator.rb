@@ -23,14 +23,16 @@ module OstrichPoll
     def validate
       uri = URI.parse url
       response = Net::HTTP.get uri rescue (
-        Log.error "Unable to connect to host #{uri}"
-        return EXIT_ERROR
+        error_msg = "Unable to connect to host #{uri}"
+        Log.error error_msg
+        return ExitStatus.new(error_msg, 1)
       )
 
       # parse response
       json = JSON.parse(response) rescue (
-        Log.error "Invalid JSON response: #{response}"
-        return EXIT_ERROR
+        error_msg = "Invalid JSON response: #{response}"
+        Log.error error_msg
+        return ExitStatus.new(error_msg, 1)
       )
 
       @stored_values = {}
@@ -54,7 +56,7 @@ module OstrichPoll
       end
 
       # execute each validations:
-      retval = false
+      retval = ExitStatus("", false)
       if validations
         validations.each do |v|
           value = v.check(find_value(json, v.metric))
@@ -90,16 +92,19 @@ module OstrichPoll
     attr_accessor :normal_range
     attr_accessor :missing
     attr_accessor :exit_code
+    attr_accessor :exit_message
 
     def init
       @rate = false
       @exit_code = 1
+      @exit_message = ""
       @missing = :ignore
     end
 
     def verify!
       Log.warn "Invalid metric #{metric.inspect}" unless metric.is_a? String
       Log.warn "Invalid exit code: #{exit_code.inspect}" unless exit_code.is_a? Integer
+      Log.warn "Invalid exit message: #{exit_message.inspect}" unless exit_message.is_a? String
 
       if normal_range
         Log.warn "Invalid normal range: #{normal_range.inspect}" unless normal_range.is_a? Array
@@ -117,11 +122,11 @@ module OstrichPoll
       unless value
         unless missing == :ignore
           Log.warn "#{metric}: value missing, treating as error; exit code #{exit_code}"
-          return exit_code
+          return ExitStatus.new("#{metric} is missing", exit_code)
         else
           Log.debug "#{host_instance.url} |   missing value, but set to ignore"
           # not an error, but you can't check anything else
-          return false
+          return ExitStatus.new("", false)
         end
       end
 
@@ -164,13 +169,13 @@ module OstrichPoll
         end
 
         if lo && value < lo
-          Log.warn "#{metric}: read value #{value} is below normal range minimum #{lo}; exit code #{exit_code}"
-          return exit_code
+          Log.warn "#{metric}: read value #{value} is below normal range minimum #{lo}; exit code #{exit_code}; exit message '#{exit_message}'"
+          return ExitStatus(exit_message, exit_code)
         end
 
         if hi && value > hi
-          Log.warn "#{metric}: read value #{value} is above normal range maximum #{hi}; exit code #{exit_code}"
-          return exit_code
+          Log.warn "#{metric}: read value #{value} is above normal range maximum #{hi}; exit code #{exit_code}; exit message '#{exit_message}'"
+          return ExitStatus(exit_message, exit_code)
         end
 
         Log.debug "#{host_instance.url} |   within normal range"
