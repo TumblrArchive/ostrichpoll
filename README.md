@@ -47,6 +47,7 @@ Configuration is specified in the format:
           normal_range: [0, 5]
           missing: ignore
           exit_code: 2
+          exit_message: "Message drop rate is too high"
         metrics/KafkaEventSink_append_msec/p99:
           normal_range: [0, 10]
           missing: error
@@ -64,6 +65,7 @@ Configuration is specified in the format:
     * `normal_range` an array specifying the minimum and maximum (inclusive) values which are acceptable for this metric
     * `missing` behavior if the metric is not seen in the output at all. (error by default)
     * `exit_code` what value Ostrichpoll should exit with if this error is seen.
+    * `exit_message` what Ostrichpoll should output to STDOUT if this error is seen.
     
 ### Notes
 Ostrichpoll is setup to execute all validations on each execution. Even if one of the early validations fails, the output from all validations is logged to stderr. However, the exit code is the exit code from the first erroring validation.
