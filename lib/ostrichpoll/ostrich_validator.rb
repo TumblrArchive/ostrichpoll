@@ -55,12 +55,14 @@ module OstrichPoll
         end
       end
 
-      # execute each validations:
-      retval = ExitStatus("", false)
+      retval = nil
+
+      # execute each validation:
       if validations
         validations.each do |v|
           value = v.check(find_value(json, v.metric))
-          retval = value unless retval
+          puts value.message unless value.nil?
+          retval = value if retval.nil?
         end
       end
 
@@ -104,7 +106,10 @@ module OstrichPoll
     def verify!
       Log.warn "Invalid metric #{metric.inspect}" unless metric.is_a? String
       Log.warn "Invalid exit code: #{exit_code.inspect}" unless exit_code.is_a? Integer
-      Log.warn "Invalid exit message: #{exit_message.inspect}" unless exit_message.is_a? String
+
+      if exit_message
+        Log.warn "Invalid exit message: #{exit_message.inspect}" unless exit_message.is_a? String
+      end
 
       if normal_range
         Log.warn "Invalid normal range: #{normal_range.inspect}" unless normal_range.is_a? Array
@@ -126,7 +131,7 @@ module OstrichPoll
         else
           Log.debug "#{host_instance.url} |   missing value, but set to ignore"
           # not an error, but you can't check anything else
-          return ExitStatus.new("", false)
+          return EXIT_FAIL
         end
       end
 
@@ -148,7 +153,7 @@ module OstrichPoll
         else
           # let it pass
           Log.info "#{metric}: no previous reading for rate"
-          return false
+          return nil
         end
       end
 
@@ -181,7 +186,7 @@ module OstrichPoll
         Log.debug "#{host_instance.url} |   within normal range"
       end
 
-      false
+      nil
     end
   end
 end

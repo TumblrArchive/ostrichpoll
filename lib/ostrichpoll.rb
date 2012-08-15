@@ -46,14 +46,14 @@ module OstrichPoll
   if @opts[:configfile]
     yaml = YAML.load_file @opts[:configfile]
     hosts = ConfigParser.parse(yaml)
+    retval = nil
 
-    retval = ExitStatus.new("", false)
     hosts.each do |h|
-      retval = h.validate unless retval
+      retval = h.validate if retval.nil?
     end
 
     # use the exitcode, unless none is given
-    exit retval if retval
+    retval.exit unless retval.nil?
 
   else
     # if we don't have a config file, simply check that the host and port respond to http
@@ -62,7 +62,7 @@ module OstrichPoll
       @response = Net::HTTP.get uri
     rescue Exception => e
       Log.warn e
-      exit EXIT_NOHTTP
+      EXIT_NOHTTP.exit
     end
   end
 
@@ -71,7 +71,7 @@ rescue SystemExit => e
 
 rescue Exception => e
   Log.error e
-  exit EXIT_ERROR # exit with error
+  ExitStatus.new(e.message, 1).exit # exit with error
 end
 
-exit OstrichPoll::EXIT_OK
+OstrichPoll::EXIT_OK.exit
