@@ -65,6 +65,9 @@ module OstrichPoll
           when 'exit_code'
             validator.exit_code = value
 
+          when 'exit_message'
+            validator.exit_message = value
+
           else
             Log.warn "Unknown key for validation: #{key}. Ignoring."
         end
