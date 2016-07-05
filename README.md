@@ -1,5 +1,7 @@
 # Ostrichpoll
 
+:warning: :warning: :warning: **OSTRICHPOLL IS NO LONGER BEING ACTIVELY MAINTAINED.**
+
 Ostrichpoll is a tiny utility for monitoring Twitter Ostrich services.
 Effectively it can monitor any service which exposes internal metrics in JSON
 over HTTP.
